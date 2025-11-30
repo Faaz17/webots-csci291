@@ -1,0 +1,118 @@
+/*
+ * File:          controller_progress_one.c
+ * Date:
+ * Description:
+ * Author:
+ * Modifications:
+ */
+
+/*
+ * You may need to add include files like <webots/distance_sensor.h> or
+ * <webots/motor.h>, etc.
+ */
+#include <webots/robot.h>
+#include <webots/motor.h>
+#include <stdio.h>
+
+/*++
+ * You may want to add macros here.
+ */
+#define TIME_STEP 64
+#define MAX_SPEED 6.28 // Maximum velocity for the Pioneer-3dx wheels
+
+/*
+ * This is the main program.
+ * The arguments of the main function can be specified by the
+ * "controllerArgs" field of the Robot node
+ */
+int main(int argc, char **argv) {
+  wb_robot_init(); // Initialize the robot
+
+  // Get handles to the motors
+  WbDeviceTag left_motor = wb_robot_get_device("left wheel");
+  WbDeviceTag right_motor = wb_robot_get_device("right wheel");
+
+  // Set the motors to run in velocity control mode
+  wb_motor_set_position(left_motor, INFINITY);
+  wb_motor_set_position(right_motor, INFINITY);
+
+  // Set initial velocity to 0 to make sure the robot is stopped
+  wb_motor_set_velocity(left_motor, 0.0);
+  wb_motor_set_velocity(right_motor, 0.0);
+
+  /* main loop
+   * Perform simulation steps of TIME_STEP milliseconds
+   * and leave the loop when the simulation is over
+   */
+  while (wb_robot_step(TIME_STEP) != -1) {
+     // Get the current simulation time in seconds
+    double time = wb_robot_get_time();
+
+    double left_speed = 0;
+    double right_speed = 0;
+
+    // State 1: Move forward for 3 seconds
+    if (time < 3.0) {
+      printf("Time: %.2f - Moving forward\n", time);
+      left_speed = MAX_SPEED*0.5;
+      right_speed = MAX_SPEED*0.5;
+    }
+    //state 2: pause for 1 second
+    else if (time < 4.0){
+    printf("Time: %.2f - Pausing\n", time);
+    left_speed = 0.0;
+    right_speed = 0.0;
+    }
+    
+    // State 3: Turn left for 2 seconds (from t=3.0 to t=5.0)
+    else if (time < 6.0) {
+      printf("Time: %.2f - Turning left\n", time);
+      left_speed = MAX_SPEED * 0.0;
+      right_speed = MAX_SPEED * 0.5;
+    }
+    //state 4: pause for 1 second
+    else if (time < 7.0){
+    printf("Time: %.2f - Pausing\n", time);
+    left_speed = 0.0;
+    right_speed = 0.0;
+    }
+    
+    // State 5: Turn right for 2 seconds (from t=7.0 to t=9.0)
+    else if (time < 9.0) {
+      printf("Time: %.2f - Turning right\n", time);
+      left_speed = MAX_SPEED * 0.5;
+      right_speed = MAX_SPEED * 0.0;
+    }
+    //state 6: pause for 1 second
+    else if (time < 10.0){
+    printf("Time: %.2f - Pausing\n", time);
+    left_speed = 0.0;
+    right_speed = 0.0;
+    }
+    
+    // State 7: Move backward for 2 seconds
+    else if (time < 12.0) {
+      printf("Time: %.2f - Moving backward\n", time);
+      left_speed = -MAX_SPEED*0.5;
+      right_speed = -MAX_SPEED*0.5;
+    }
+    
+    // State 8: Stop
+    else {
+      printf("Time: %.2f - Final Stop\n", time);
+      left_speed = 0.0;
+      right_speed = 0.0;
+    }
+
+    // Set the wheel velocities
+    wb_motor_set_velocity(left_motor, left_speed);
+    wb_motor_set_velocity(right_motor, right_speed);
+  };
+
+  /* Enter your cleanup code here */
+
+  /* This is necessary to cleanup webots resources */
+  wb_robot_cleanup();
+
+  return 0;
+}
